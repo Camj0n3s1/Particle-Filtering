@@ -14,6 +14,7 @@
 # Pieter Abbeel (pabbeel@cs.berkeley.edu).
 
 
+from importlib.metadata import distribution
 import util
 from game import Agent
 from game import Directions
@@ -146,3 +147,12 @@ class GreedyBustersAgent(BustersAgent):
             [beliefs for i, beliefs in enumerate(self.ghostBeliefs)
              if livingGhosts[i+1]]
         "*** YOUR CODE HERE ***"
+        likelyPos = [distribution.argMax() for distribution in livingGhostPositionDistributions]
+        minAct, minDist = legal[0], float("inf")
+        for act in legal:
+            succPos = Actions.getSuccessor(pacmanPosition, act)
+            for ghostPos in likelyPos:
+                ghostDist = self.distancer.getDistance(succPos, ghostPos)
+                if ghostDist < minDist:
+                    minAct, minDist = act, ghostDist
+        return minAct
