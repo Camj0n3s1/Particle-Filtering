@@ -479,25 +479,31 @@ class JointParticleFilter(ParticleFilter):
         self.particles = []
         "*** YOUR CODE HERE ***"
         #raiseNotDefined()
-        cartesian = itertools.product(self.legalPositions, repeat = self.numGhosts)
-        cartesianShuffle = []
+
+        #store cartesian product via itertools.product(), initalize list for shuffling permutations
+        cart = itertools.product(self.legalPositions, repeat = self.numGhosts)
+        cartShuffle = []
+        #initialize boolean for tracking 'None' values
         boo1 = True
         while boo1 != None:
-            val = next(cartesian, None)
+            val = next(cart, None)
             if val != None:
-                cartesianShuffle.append(val)
+                cartShuffle.append(val)
             else:
                 boo1 = None
-        random.shuffle(cartesianShuffle)
-        if self.numParticles < len(cartesianShuffle):
+        #implement shuffle() for permutations
+        random.shuffle(cartShuffle)
+        #check for instance in which the numParticle is less than the total number of permutations
+        if self.numParticles < len(cartShuffle):
             for i in range(self.numParticles):
-                self.particles.append(cartesianShuffle[i])
+                self.particles.append(cartShuffle[i])
         else:
-            for j in range(int(self.numParticles/len(cartesianShuffle))):
-                for k in range(len(cartesianShuffle)):
-                    self.particles.append(cartesianShuffle[k])
-            for l in range(self.numParticles % len(cartesianShuffle)):
-                self.particles.append(cartesianShuffle[l])
+            #otherwise, store corresponding permutation values for appropriate particles
+            for j in range(int(self.numParticles/len(cartShuffle))):
+                for k in range(len(cartShuffle)):
+                    self.particles.append(cartShuffle[k])
+            for l in range(self.numParticles % len(cartShuffle)):
+                self.particles.append(cartShuffle[l])
 
     def addGhostAgent(self, agent):
         """
@@ -531,13 +537,17 @@ class JointParticleFilter(ParticleFilter):
         """
         "*** YOUR CODE HERE ***"
         #raiseNotDefined()
+
+        #initialize belief distribution
         newBelief = DiscreteDistribution()
         for p in self.particles:
             total = 1
+            #loop through observations to store total belief values
             for i in range(self.numGhosts):
                 total *= self.getObservationProb(observation[i], gameState.getPacmanPosition(), p[i], self.getJailPosition(i))
+            #update belief
             newBelief[p] += total
-        if newBelief.total() == 0:
+        if newBelief.total() == 0: # special case
             self.initializeUniformly(gameState)
         else:
             self.particles = [newBelief.sample() for j in range(len(self.particles))]
@@ -554,6 +564,8 @@ class JointParticleFilter(ParticleFilter):
             # now loop through and update each entry in newParticle...
             "*** YOUR CODE HERE ***"
             #raiseNotDefined()
+
+            #loop through newParticle entries and assign "next state" values appropriately
             for i in range(len(newParticle)):
                 newPosDist = self.getPositionDistribution(gameState, newParticle, i, self.ghostAgents[i])
                 newParticle[i] = newPosDist.sample()
