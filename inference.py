@@ -80,7 +80,10 @@ class DiscreteDistribution(dict):
         """
         "*** YOUR CODE HERE ***"
         #raiseNotDefined()
+
+        #collect key value sum
         total = float(self.total())
+        #ensure all key value sum to 1
         if total != 0:
             for key in self.keys():
                 self[key] = self[key]/total
@@ -109,16 +112,21 @@ class DiscreteDistribution(dict):
         """
         "*** YOUR CODE HERE ***"
         #raiseNotDefined()
+
+        #normalize key-values
         self.normalize()
+        #sort/initialize bucket, key lists
         orderList = list(sorted(self.items()))
         total = 0
         bucket, key = [],[]
+        #distribution
         for arg in orderList:
             if arg[1] != 0:
                 total += arg[1]
                 bucket.append(total)
                 key.append(arg[0])
         rand = random.random()
+        #loop through bucket for draw sample from distribution
         for b in range(len(bucket)):
             if bucket[b] > rand:
                 return key[b]
@@ -192,6 +200,7 @@ class InferenceModule:
         """
         "*** YOUR CODE HERE ***"
         #raiseNotDefined()
+        #check for case in which ghost is in jail/ return specified values
         if jailPosition == ghostPosition:
             if noisyDistance == None:
                 return 1
@@ -201,6 +210,7 @@ class InferenceModule:
             if noisyDistance == None:
                 return 0
             else:
+                #caclulate distance/call getObservationProb via "busters" and return value
                 distAct = manhattanDistance(pacmanPosition, ghostPosition)
                 pNoiseGTrue = busters.getObservationProbability(noisyDistance, distAct)
                 return pNoiseGTrue
@@ -312,6 +322,8 @@ class ExactInference(InferenceModule):
         """
         "*** YOUR CODE HERE ***"
         #raiseNotDefined()
+
+        #loop through all possible ghost locations/ assign corresponding belief-value
         for pos in self.allPositions:
             self.beliefs[pos] = self.beliefs[pos] * self.getObservationProb(observation, gameState.getPacmanPosition(), pos, self.getJailPosition())
 
@@ -328,11 +340,14 @@ class ExactInference(InferenceModule):
         """
         "*** YOUR CODE HERE ***"
         #raiseNotDefined()
+        #initialize belief distribution
         newBelief = DiscreteDistribution()
+        #nested loop through to-be-updated positions to predict beliefs
         for oldPos in self.allPositions:
             newPosDist = self.getPositionDistribution(gameState, oldPos)
             for newPos in newPosDist.keys():
                 newBelief[newPos] += newPosDist[newPos] * self.beliefs[oldPos]
+        #assign acquired values appropriately
         for p in self.allPositions:
             self.beliefs[p] = newBelief[p]
 
@@ -362,11 +377,16 @@ class ParticleFilter(InferenceModule):
         self.particles = []
         "*** YOUR CODE HERE ***"
         #raiseNotDefined()
+
+        #assign value to store distribution of # of particles/ # of (legal)positions
         i = self.numParticles / len(self.legalPositions)
+        # store remainder
         remain = self.numParticles % (len(self.legalPositions))
+        #nest loop through positions to store particle positions
         for p in self.legalPositions:
             for _ in range(int(i)):
                 self.particles.append(p)
+        #store remainders
         for i in range(remain):
             self.particles.append(self.legalPositions[i])
 
@@ -384,13 +404,17 @@ class ParticleFilter(InferenceModule):
         """
         "*** YOUR CODE HERE ***"
         #raiseNotDefined()
+
+        #initialize for belief distributions
         newBelief = DiscreteDistribution()
+        #loop through particles to assign belief valeus
         for p in self.particles:
             newBelief[p] += self.getObservationProb(observation, gameState.getPacmanPosition(), p, self.getJailPosition())
+        #special case:
         if newBelief.total() == 0:
             self.initializeUniformly(gameState)
         else:
-            self.particles = [newBelief.sample() for d in range(len(self.particles))]
+            self.particles = [newBelief.sample() for d in range(len(self.particles))] #edit: implement list comprehension
 
     def elapseTime(self, gameState):
         """
@@ -399,7 +423,10 @@ class ParticleFilter(InferenceModule):
         """
         "*** YOUR CODE HERE ***"
         #raiseNotDefined()
+
+        #initialize list for particles
         particles = []
+        #loop through particles for sampling by finding position distribution for current
         for oldPos in self.particles:
             newPosDist = self.getPositionDistribution(gameState, oldPos)
             particles.append(newPosDist.sample())
@@ -416,7 +443,10 @@ class ParticleFilter(InferenceModule):
         """
         "*** YOUR CODE HERE ***"
         #raiseNotDefined()
+
+        #initialize belief distribution
         beliefs = DiscreteDistribution()
+        #increment all belief values before normalizing the distribution
         for p in self.particles:
             beliefs[p] += 1
         beliefs.normalize()
